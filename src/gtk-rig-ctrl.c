@@ -356,7 +356,8 @@ void gtk_rig_ctrl_update   (GtkRigCtrl *ctrl, gdouble t)
         target_aquired = 0;
 
       strncpy(active_target_nick, ctrl->target->nickname,sizeof(active_target_nick));
-      printf("active target(rig): %s\n",active_target_nick);
+      if (verbose_mode)
+        printf("active target(rig): %s\n",active_target_nick);
 
       if (ctrl->target->nickname != next_sat_mc && !target_aquired) {
         ctrl->target = SAT(g_slist_nth_data(ctrl->sats, index));

@@ -112,7 +112,6 @@ static GdkColor ColGreen = {0, 0, 0xFFFF, 0};
 char active_target_nick[256];
 char **satlist_mc_nick;
 int target_aquired;
-unsigned int seconds_LOS;
 
 
 
@@ -320,7 +319,8 @@ void
       target_aquired = 0;
 
     strncpy(active_target_nick, ctrl->target->nickname,sizeof(active_target_nick));
-    printf("active target(rot): %s\n",active_target_nick);
+    if (verbose_mode)
+      printf("active target(rot): %s\n",active_target_nick);
 
     if (ctrl->target->nickname != next_sat_mc && !target_aquired) { 
       ctrl->target = SAT(g_slist_nth_data(ctrl->sats, index));
@@ -517,7 +517,8 @@ static
 		satlist_mc_nick[i] = (char*)malloc(50*sizeof(char));
 
 		strcpy(satlist_mc_nick[i], sat->nickname);
-		printf("satarray index: %d satarray value(nick): %s\n", i, satlist_mc_nick[i]);
+    if (verbose_mode)
+      printf("satarray index: %d satarray value(nick): %s\n", i, satlist_mc_nick[i]);
 
             gtk_combo_box_append_text (GTK_COMBO_BOX (satsel), sat->nickname);
         }
@@ -735,30 +736,11 @@ static void
 {
     GtkRotCtrl *ctrl = GTK_ROT_CTRL (data);
     gint i;
-//    int n;
     
     i = gtk_combo_box_get_active (satsel);
-/*    printf("index of selected sat: %d\n",i);
-    printf("active text: %s\n",gtk_combo_box_get_active_text(satsel));
-    n = g_slist_length (ctrl->sats);
-    int x=0;
-
-    while(x<n-1){
-	if (0==x) {
-		
-	gtk_combo_box_set_active(satsel, x);
-	printf("item with index: %d has name %s", x, gtk_combo_box_get_active_text(satsel));
-	x+=1;
-	}
-    }*/
-    //printf("ID of active row: %s",gtk_combo_box_get_active_id(satsel));
-    //printf("ID of comlumn: %s", gtk_combo_box_get_id_column(satsel));
-    //printf("combobox_get_title: %s", gtk_combo_box_get_title(satsel));
-
     if (i >= 0) {
         ctrl->target = SAT (g_slist_nth_data (ctrl->sats, i));
 		//MC
-		//printf("lalala aus sat_selected_cb: ctrl->target: %s\n",*ctrl->target);
         
         /* update next pass */
         if (ctrl->pass != NULL)
@@ -766,12 +748,8 @@ static void
         
         if (ctrl->target->el > 0.0)
             ctrl->pass = get_current_pass (ctrl->target, ctrl->qth, ctrl->t);
-		//MC
-		//printf("aus sat_selected_cb: ctrl->pass: %s und ctrl->t: %s\n",*ctrl->qth, ctrl->t);
         else
             ctrl->pass = get_pass (ctrl->target, ctrl->qth, ctrl->t, 3.0);
-		//MC
-		//printf("aus sat_selected_cb: ctrl->qth: %s und ctrl->t: %s\n",*ctrl->qth, ctrl->t);
         set_flipped_pass(ctrl);
 
     }

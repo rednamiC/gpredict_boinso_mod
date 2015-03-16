@@ -110,7 +110,6 @@ static GtkVBoxClass *parent_class = NULL;
 static GooCanvasPoints *points1;
 static GooCanvasPoints *points2;
 char next_sat_mc[256];
-int minutes_AOS;
 
 /** \brief Register the satellite map widget. */
 GtkType
@@ -673,9 +672,6 @@ gtk_sat_map_update (GtkWidget  *widget)
                     else
                         cs = g_strdup (":");
 
-                    minutes_AOS = m+60*h;
-
-
                     //mc
                     if (h > 0) {
                         buff = g_strdup_printf (_("<span background=\"#%s\"> "\
@@ -685,12 +681,13 @@ gtk_sat_map_update (GtkWidget  *widget)
                                                 ch, h, cm, m, cs, s);
                         if (strcmp(next_sat_mc,"")==0) {
                           strncpy(next_sat_mc,sat->nickname,sizeof(next_sat_mc));
-                          printf("\tnext_sat: %s\n",next_sat_mc);
+                          if (verbose_mode)
+                            printf("\tnext_sat: %s\n",next_sat_mc);
                         }
                         if (strcmp(next_sat_mc,sat->nickname)!=0) {
-                          printf("(nextsat!=sat->nickname bei h>0)\tNext sat: %s\n", sat->nickname);
                           strncpy(next_sat_mc,sat->nickname,sizeof(next_sat_mc));
-                          printf("\tnext_sat: %s\n",next_sat_mc);
+                          if (verbose_mode)
+                            printf("\tnext_sat: %s\n",next_sat_mc);
                         }
                     }
                     else {
@@ -701,11 +698,13 @@ gtk_sat_map_update (GtkWidget  *widget)
                                                 cm, m, cs, s);
 			if (strcmp(next_sat_mc,"")==0) {
 				strncpy(next_sat_mc,sat->nickname,sizeof(next_sat_mc));
-				printf("\tnext_sat: %s\n",next_sat_mc);
+        if (verbose_mode)
+          printf("\tnext_sat: %s\n",next_sat_mc);
 			}
 			if (strcmp(next_sat_mc,sat->nickname)!=0) {
 				strncpy(next_sat_mc,sat->nickname,sizeof(next_sat_mc));
-				printf("\tnext_sat: %s\n",next_sat_mc);
+				if (verbose_mode)
+          printf("\tnext_sat: %s\n",next_sat_mc);
 			}
 			}
 
@@ -1840,9 +1839,6 @@ update_sat (gpointer key, gpointer value, gpointer data)
     gchar    *tooltip;
     gchar    *aosstr;
     
-    //mc
-//    printf("satupdate in satmap für LOS-> sat: %s\n",sat->nickname);
-
     //gdouble sspla,ssplo;
 
     root = goo_canvas_get_root_item_model (GOO_CANVAS (satmap->canvas));
@@ -2405,13 +2401,13 @@ static gchar *aoslos_time_to_str (GtkSatMap *satmap, sat_t *sat)
     if (sat->el > 0.0) {
         text = g_strdup_printf (_("LOS in %d minutes"), m+60*h);
         //mc
-        if (!strcmp(sat->nickname, active_target_nick)) 
+        if (!strcmp(sat->nickname, active_target_nick) && verbose_mode)
           printf("Next event for %s: \n\tLOS in %d minutes\n",sat->nickname, m+60*h);
     }
     else {
         text = g_strdup_printf (_("AOS in %d minutes"), m+60*h);
         //mc
-        if (!strcmp(sat->nickname, active_target_nick))
+        if (!strcmp(sat->nickname, active_target_nick) && verbose_mode)
           printf("Next event for %s: \n\tAOS in %d minutes\n",sat->nickname, m+60*h);
     }
 

@@ -47,6 +47,7 @@
 #include "sat-cfg.h"
 #include "gtk-sat-selector.h"
 #include "sat-debugger.h"
+#include "next_sat_head_mc.h"
 
 #ifdef WIN32
 #include <winsock2.h>
@@ -62,15 +63,19 @@ static gboolean cleantle = FALSE;
 /** \brief Command line flag for cleaning TRSP data */
 static gboolean cleantrsp = FALSE;
 
+/** \mc -> verbose mode, -> output informations on console */
+static gboolean verbose = FALSE;
+
 /** \brief Command line options. */
 static GOptionEntry entries[] =
 {
   { "clean-tle", 0, 0, G_OPTION_ARG_NONE, &cleantle, "Clean the TLE data in user's configuration directory", NULL },
   { "clean-trsp", 0, 0, G_OPTION_ARG_NONE, &cleantrsp, "Clean the transponder data in user's configuration directory", NULL },
+  { "verbose", 'v', 0, G_OPTION_ARG_NONE, &verbose, "Be verbose", NULL },
   { NULL }
 };
 
-
+int verbose_mode=0;
 
 const gchar *dummy = N_("just to have a pot");
 
@@ -147,6 +152,13 @@ int main (int argc, char *argv[])
 
     if (cleantrsp)
         clean_trsp ();
+    
+    //mc
+    if (verbose) {
+      printf("verbose mode on");
+      verbose_mode = 1;
+      printf("verbose_mode: %d\n",verbose_mode);
+    }
 
     /* check that user settings are ok */
     error = first_time_check_run ();
