@@ -672,22 +672,24 @@ gtk_sat_map_update (GtkWidget  *widget)
                     else
                         cs = g_strdup (":");
 
-                    //mc
+                    /* MC */
                     if (h > 0) {
                         buff = g_strdup_printf (_("<span background=\"#%s\"> "\
                                                 "Next: %s in %s%d:%s%d%s%d </span>"),
                                                 satmap->infobgd,
                                                 sat->nickname,
                                                 ch, h, cm, m, cs, s);
-                        if (strcmp(next_sat_mc,"")==0) {
-                          strncpy(next_sat_mc,sat->nickname,sizeof(next_sat_mc));
-                          if (verbose_mode)
-                            printf("\tnext_sat: %s\n",next_sat_mc);
-                        }
-                        if (strcmp(next_sat_mc,sat->nickname)!=0) {
-                          strncpy(next_sat_mc,sat->nickname,sizeof(next_sat_mc));
-                          if (verbose_mode)
-                            printf("\tnext_sat: %s\n",next_sat_mc);
+                        if (auto_mode) {
+                          if (strcmp(next_sat_mc,"")==0) {
+                            strncpy(next_sat_mc,sat->nickname,sizeof(next_sat_mc));
+                            if (verbose_mode)
+                              printf("\tnext_sat: %s\n",next_sat_mc);
+                          }
+                          if (strcmp(next_sat_mc,sat->nickname)!=0) {
+                            strncpy(next_sat_mc,sat->nickname,sizeof(next_sat_mc));
+                            if (verbose_mode)
+                              printf("\tnext_sat: %s\n",next_sat_mc);
+                          }
                         }
                     }
                     else {
@@ -696,17 +698,19 @@ gtk_sat_map_update (GtkWidget  *widget)
                                                 satmap->infobgd,
                                                 sat->nickname,
                                                 cm, m, cs, s);
-			if (strcmp(next_sat_mc,"")==0) {
-				strncpy(next_sat_mc,sat->nickname,sizeof(next_sat_mc));
-        if (verbose_mode)
-          printf("\tnext_sat: %s\n",next_sat_mc);
-			}
-			if (strcmp(next_sat_mc,sat->nickname)!=0) {
-				strncpy(next_sat_mc,sat->nickname,sizeof(next_sat_mc));
-				if (verbose_mode)
-          printf("\tnext_sat: %s\n",next_sat_mc);
-			}
-			}
+                        if (auto_mode) {
+                          if (strcmp(next_sat_mc,"")==0) {
+                            strncpy(next_sat_mc,sat->nickname,sizeof(next_sat_mc));
+                            if (verbose_mode)
+                              printf("\tnext_sat: %s\n",next_sat_mc);
+                          }
+                          if (strcmp(next_sat_mc,sat->nickname)!=0) {
+                            strncpy(next_sat_mc,sat->nickname,sizeof(next_sat_mc));
+                            if (verbose_mode)
+                              printf("\tnext_sat: %s\n",next_sat_mc);
+                          }
+                        }
+                      }
 
                     g_object_set (satmap->next,
                                   "text", buff,
@@ -2400,13 +2404,13 @@ static gchar *aoslos_time_to_str (GtkSatMap *satmap, sat_t *sat)
 
     if (sat->el > 0.0) {
         text = g_strdup_printf (_("LOS in %d minutes"), m+60*h);
-        //mc
+        /* MC */
         if (!strcmp(sat->nickname, active_target_nick) && verbose_mode)
           printf("Next event for %s: \n\tLOS in %d minutes\n",sat->nickname, m+60*h);
     }
     else {
         text = g_strdup_printf (_("AOS in %d minutes"), m+60*h);
-        //mc
+        /* MC */
         if (!strcmp(sat->nickname, active_target_nick) && verbose_mode)
           printf("Next event for %s: \n\tAOS in %d minutes\n",sat->nickname, m+60*h);
     }

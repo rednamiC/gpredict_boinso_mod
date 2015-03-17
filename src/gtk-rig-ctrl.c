@@ -335,44 +335,46 @@ void gtk_rig_ctrl_update   (GtkRigCtrl *ctrl, gdouble t)
     gchar *buff;
 
     /*MC*/
-    int i=0;
-    int index=9999;
-    int n= g_slist_length(ctrl->sats);
-     
+    if (auto_mode) {
+      int i=0;
+      int index=9999;
+      int n= g_slist_length(ctrl->sats);
+      
 
-    if(satlist_mc_nick && ctrl->engaged && ctrl->target){
-      for(i;i<n;i++){
-        /*check if next sat from gtk_sat_map.c is same as one in out sat_list_nick and get index of it*/
-        if (!strcmp(next_sat_mc,satlist_mc_nick[i])) { 
-          index = i;
-          break;
+      if(satlist_mc_nick && ctrl->engaged && ctrl->target){
+        for(i;i<n;i++){
+          /*check if next sat from gtk_sat_map.c is same as one in out sat_list_nick and get index of it*/
+          if (!strcmp(next_sat_mc,satlist_mc_nick[i])) { 
+            index = i;
+            break;
+          }
         }
+
+        /*check if target satellite is between AOS and LOS*/
+        if (!target_aquired && ctrl->target->el > 0.0)
+          target_aquired = 1;
+        if (target_aquired && ctrl->target->el < 0.0)
+          target_aquired = 0;
+
+        strncpy(active_target_nick, ctrl->target->nickname,sizeof(active_target_nick));
+        if (verbose_mode)
+          printf("active target(rig): %s\n",active_target_nick);
+
+        if (ctrl->target->nickname != next_sat_mc && !target_aquired) {
+          ctrl->target = SAT(g_slist_nth_data(ctrl->sats, index));
+          /*
+          if (ctrl->pass != NULL)
+            free_pass (ctrl->pass);
+
+          if (ctrl->target->el > 0.0)
+            ctrl->pass = get_current_pass (ctrl->target, ctrl->qth, 3.0);
+          else
+            ctrl->pass = get_pass (ctrl->target, ctrl->qth, 3.0);
+
+          set_flipped_pass(ctrl);*/
+        }
+
       }
-
-      /*check if target satellite is between AOS and LOS*/
-      if (!target_aquired && ctrl->target->el > 0.0)
-        target_aquired = 1;
-      if (target_aquired && ctrl->target->el < 0.0)
-        target_aquired = 0;
-
-      strncpy(active_target_nick, ctrl->target->nickname,sizeof(active_target_nick));
-      if (verbose_mode)
-        printf("active target(rig): %s\n",active_target_nick);
-
-      if (ctrl->target->nickname != next_sat_mc && !target_aquired) {
-        ctrl->target = SAT(g_slist_nth_data(ctrl->sats, index));
-        /*
-        if (ctrl->pass != NULL)
-          free_pass (ctrl->pass);
-
-        if (ctrl->target->el > 0.0)
-          ctrl->pass = get_current_pass (ctrl->target, ctrl->qth, 3.0);
-        else
-          ctrl->pass = get_pass (ctrl->target, ctrl->qth, 3.0);
-
-        set_flipped_pass(ctrl);*/
-      }
-
     }
 
     
@@ -2564,7 +2566,14 @@ gboolean send_rigctld_command(GtkRigCtrl *ctrl, gint sock, gchar *buff, gchar *b
     gint    written;
     gint    size;
     
+    /* MC; win32 newline -> \10\13 */
+#ifdef WIN32 
     size = strlen(buff)-1;
+    /* MC; unix newline -> \10 (apple -> \13) */
+#else
+    size = strlen(buff);
+#endif
+
 
     sat_log_log (SAT_LOG_LEVEL_DEBUG,
                  _("%s:%s: sending %d bytes to rigctld as \"%s\""),

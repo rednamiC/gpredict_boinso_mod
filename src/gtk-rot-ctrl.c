@@ -298,46 +298,48 @@ void
 {
     gchar *buff;
 	/*MC*/
-	int i=0;
-	int index=9999;
-  int n= g_slist_length(ctrl->sats);
+  if (auto_mode) {
+    int i=0;
+    int index=9999;
+    int n= g_slist_length(ctrl->sats);
 
 
-	if(satlist_mc_nick && ctrl->engaged && ctrl->target){
-		for(i;i<n;i++){
-			/*check if next sat from gtk_sat_map.c is same as one in out sat_list_nick and get index of it*/
-			if (!strcmp(next_sat_mc,satlist_mc_nick[i])) {
-				index = i;
-        break;
-			}
-		}
+    if(satlist_mc_nick && ctrl->engaged && ctrl->target){
+      for(i;i<n;i++){
+        /*check if next sat from gtk_sat_map.c is same as one in out sat_list_nick and get index of it*/
+        if (!strcmp(next_sat_mc,satlist_mc_nick[i])) {
+          index = i;
+          break;
+        }
+      }
 
-    /*check if target satellite is between AOS and LOS*/
-    if (!target_aquired && ctrl->target->el > 0.0)
-      target_aquired = 1;
-    if (target_aquired && ctrl->target->el < 0.0)
-      target_aquired = 0;
+      /*check if target satellite is between AOS and LOS*/
+      if (!target_aquired && ctrl->target->el > 0.0)
+        target_aquired = 1;
+      if (target_aquired && ctrl->target->el < 0.0)
+        target_aquired = 0;
 
-    strncpy(active_target_nick, ctrl->target->nickname,sizeof(active_target_nick));
-    if (verbose_mode)
-      printf("active target(rot): %s\n",active_target_nick);
+      strncpy(active_target_nick, ctrl->target->nickname,sizeof(active_target_nick));
+      if (verbose_mode)
+        printf("active target(rot): %s\n",active_target_nick);
 
-    if (ctrl->target->nickname != next_sat_mc && !target_aquired) { 
-      ctrl->target = SAT(g_slist_nth_data(ctrl->sats, index));
-          if (ctrl->pass != NULL)
-              free_pass (ctrl->pass);
-          
-          if (ctrl->target->el > 0.0)
-              ctrl->pass = get_current_pass (ctrl->target, ctrl->qth, ctrl->t);
-          else
-              ctrl->pass = get_pass (ctrl->target, ctrl->qth, ctrl->t, 3.0);
-          set_flipped_pass(ctrl);
-          if (ctrl->plot != NULL)
-            gtk_polar_plot_set_pass (GTK_POLAR_PLOT (ctrl->plot), ctrl->pass);
+      if (ctrl->target->nickname != next_sat_mc && !target_aquired) { 
+        ctrl->target = SAT(g_slist_nth_data(ctrl->sats, index));
+            if (ctrl->pass != NULL)
+                free_pass (ctrl->pass);
+            
+            if (ctrl->target->el > 0.0)
+                ctrl->pass = get_current_pass (ctrl->target, ctrl->qth, ctrl->t);
+            else
+                ctrl->pass = get_pass (ctrl->target, ctrl->qth, ctrl->t, 3.0);
+            set_flipped_pass(ctrl);
+            if (ctrl->plot != NULL)
+              gtk_polar_plot_set_pass (GTK_POLAR_PLOT (ctrl->plot), ctrl->pass);
 
+      }
+        
     }
-			
-	}
+  }
     
     ctrl->t = t;
     
@@ -508,19 +510,25 @@ static
     /* sat selector */
     satsel = gtk_combo_box_new_text ();
     n = g_slist_length (ctrl->sats);
-	//allocate space for n satellites MC
-	satlist_mc_nick = (char**)malloc(n*sizeof(char*));
+
+	/* MC; allocate space for n satellites */
+    if (auto_mode)
+      satlist_mc_nick = (char**)malloc(n*sizeof(char*));
+
     for (i = 0; i < n; i++) {
         sat = SAT (g_slist_nth_data (ctrl->sats, i));
         if (sat) {
-		//allocate space for nickname MC
-		satlist_mc_nick[i] = (char*)malloc(50*sizeof(char));
+          gtk_combo_box_append_text (GTK_COMBO_BOX (satsel), sat->nickname);
 
-		strcpy(satlist_mc_nick[i], sat->nickname);
-    if (verbose_mode)
-      printf("satarray index: %d satarray value(nick): %s\n", i, satlist_mc_nick[i]);
+           /* MC; allocate space for nickname */
+          if (auto_mode) {
+            satlist_mc_nick[i] = (char*)malloc(50*sizeof(char));
 
-            gtk_combo_box_append_text (GTK_COMBO_BOX (satsel), sat->nickname);
+            strcpy(satlist_mc_nick[i], sat->nickname);
+            if (verbose_mode)
+              printf("satarray index: %d satarray value(nick): %s\n", i, satlist_mc_nick[i]);
+          }
+
         }
     }
 
@@ -740,7 +748,6 @@ static void
     i = gtk_combo_box_get_active (satsel);
     if (i >= 0) {
         ctrl->target = SAT (g_slist_nth_data (ctrl->sats, i));
-		//MC
         
         /* update next pass */
         if (ctrl->pass != NULL)
@@ -1442,7 +1449,13 @@ gboolean send_rotctld_command(GtkRotCtrl *ctrl, gchar *buff, gchar *buffout, gin
     gint    written;
     gint    size;
 
+    /* MC; win32 newline -> \10\13 */
+#ifdef WIN32
+    size = strlen(buff)-1;
+    /* MC; unix newline -> \10 (apple -> \13)*/
+#else
     size = strlen(buff);
+#endif
     
     //sat_log_log (SAT_LOG_LEVEL_DEBUG,
     //             _("%s:%s: Sending %d bytes as %s."),
